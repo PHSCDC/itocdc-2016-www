@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="0001" author="iseage">
+        <comment>Creating Users Table</comment>
+        <createTable tableName="users" >
+            <column name="userID" autoIncrement="true" type="int">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="varchar(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="password" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="access" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="0002" author="iseage">
+        <comment>Creating Download Table</comment>
+        <createTable tableName="download" >
+            <column name="file" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="0003" author="iseage">
+        <sql dbms="mysql">
+            insert into download (file) values ('/var/game/game.zip');
+        </sql>
+    </changeSet>
+
+    <changeSet id="0004" author="iseage">
+        <comment>Creating Comments Table</comment>
+        <createTable tableName="comments" >
+            <column name="commentID" autoIncrement="true" type="int">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="comment" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="0005" author="iseage">
+        <comment>Creating Images Table</comment>
+        <createTable tableName="images" >
+            <column name="image" type="varchar(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="approved" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="0006" author="iseage">
+        <comment>Create default user</comment>
+        <sql dbms="mysql">
+            insert into users (username, password, email, access) values ('cdc', 'cdc', 'cdc@isucdc.com', 1);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
