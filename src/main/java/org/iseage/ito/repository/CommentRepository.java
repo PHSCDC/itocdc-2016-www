@@ -31,6 +31,7 @@ public class CommentRepository {
 
     public void addComment(String comment, String author) {
         String sql = "insert into comments (comment, author) values ('" + comment + "', '" + author + "');";
-        template.update(sql);
+		if(comment.length()  < 350)
+			template.update(sql);
     }
 }
