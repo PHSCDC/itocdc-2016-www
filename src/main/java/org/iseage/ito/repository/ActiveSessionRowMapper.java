@@ -25,6 +25,7 @@ public class ActiveSessionRowMapper implements RowMapper {
             ActiveSession sess = new ActiveSession();
             sess.setId(resultSet.getString(1));
             sess.setIp(resultSet.getString(2));
+            sess.setExpiry(resultSet.getLong(3));
             return sess;
         }
     }
