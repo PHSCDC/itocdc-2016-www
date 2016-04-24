@@ -20,6 +20,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
@@ -50,7 +51,8 @@ public class MainController {
     ActiveSessionRepository sessionRepository;
 
     @RequestMapping("")
-    public String home() {
+    public String home(HttpServletRequest req) {
+		validateSession(req);
         return "index";
     }
 
@@ -79,17 +81,20 @@ public class MainController {
     }
 
     @RequestMapping("/login")
-    public String login() {
+    public String login(HttpServletRequest req) {
+		validateSession(req);
         return "login";
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.GET)
-    public String register() {
+    public String register(HttpServletRequest req) {
+		validateSession(req);
         return "register";
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public void register(@RequestBody User user, HttpServletResponse response) {
+    public void register(@RequestBody User user, HttpServletResponse response, HttpServletRequest req) {
+		validateSession(req);
         boolean registrationWasSuccessful = userRepository.addUser(user.getUsername(), user.getPassword(), user.getEmail());
         if (registrationWasSuccessful) {
             response.setStatus(201);
@@ -99,7 +104,8 @@ public class MainController {
     }
 
     @RequestMapping("/screenshots")
-    public String screenshots(ModelMap modelMap) {
+    public String screenshots(HttpServletRequest req, ModelMap modelMap) {
+		validateSession(req);
         List<String> approvedImages = imageRepository.getApprovedImages();
 
         List<String> imageList = getImageNames(approvedImages);
@@ -109,11 +115,14 @@ public class MainController {
     }
 
     @RequestMapping("/profile")
-    public String profile(ModelMap modelMap) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        String email = userRepository.getUserEmail(username);
-        modelMap.put("email", email);
+    public String profile(HttpServletRequest req, ModelMap modelMap) {
+		if(validateSession(req))
+		{
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			String username = auth.getName();
+			String email = userRepository.getUserEmail(username);
+			modelMap.put("email", email);
+		}
         return "profile";
     }
 
@@ -132,7 +141,8 @@ public class MainController {
     }
 
     @RequestMapping(value = "/comments", method = RequestMethod.GET)
-    public String comments(ModelMap modelMap) {
+    public String comments(HttpServletRequest req, ModelMap modelMap) {
+		validateSession(req);
         List<Comment> commentList = commentRepository.getComments();
         modelMap.put("comments", commentList);
         return "comments";
@@ -199,35 +209,42 @@ public class MainController {
     
     private boolean validateSession(HttpServletRequest req)
     {
-		ActiveSession sess = sessionRepository.getActiveSessionById(req.getSession().getId());
-		if(sess != null)
-		{
-			if(sess.getIp() != ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr())
+		try{
+			ActiveSession sess = sessionRepository.getActiveSessionById(req.getSession().getId());
+			if(sess != null)
 			{
-				sessionRepository.rmActiveSession(sess.getId());
-				return false;
-			}
-			else if(sess.getExpiry() < (Instant.now().getEpochSecond() + 3600))
-			{
-				sessionRepository.rmActiveSession(sess.getId());
-				return false;
-			}
-			else
-			{
-				return true;
-			}
-		}
-		else
-		{
-			if(req.isRequestedSessionIdValid())
-			{
-				sessionRepository.addActiveSession(req.getSession().getId(), ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr());
-				return true;
+				if(sess.getIp() != ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr())
+				{
+					sessionRepository.rmActiveSession(sess.getId());
+					req.logout();
+					return false;
+				}
+				else if(sess.getExpiry() < (Instant.now().getEpochSecond() + 3600))
+				{
+					sessionRepository.rmActiveSession(sess.getId());
+					req.logout();
+					return false;
+				}
+				else
+				{
+					return true;
+				}
 			}
 			else
 			{
-				return false;
+				if(req.isRequestedSessionIdValid())
+				{
+					sessionRepository.addActiveSession(req.getSession().getId(), ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr());
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 			}
+		} catch(ServletException e) {
+			System.out.println("Error logging out bad session!!");
 		}
+		return false;
 	}
 }
