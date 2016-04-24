@@ -49,7 +49,7 @@ public class ActiveSessionRepository {
     }
     
     public void rmActiveSession(String id) {
-        String sql = "DELETE * FROM active_sessions WHERE id='" + id + "');";
+        String sql = "DELETE FROM active_sessions WHERE id='" + id + "';";
 		template.update(sql);
     }
 }
