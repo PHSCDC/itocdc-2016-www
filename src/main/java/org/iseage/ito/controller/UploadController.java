@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.nio.file.Files;
 import java.io.FileOutputStream;
 
 @Controller
@@ -27,11 +28,12 @@ public class UploadController {
         if (!file.isEmpty()) {
             try {
                 String fileName = file.getOriginalFilename();
+                
                 if (!imageRepository.addImage(fileName)) {
                     redirectAttributes.addFlashAttribute("message", "An image with that name has already been uploaded!");
                     return "redirect:screenshots";
                 }
-                if (fileName.endsWith("png") || fileName.endsWith("jpg")) {
+                if (fileName.endsWith(".png") || fileName.endsWith(".jpg")) {
                     File uploadedFile = new File(Application.getUploadDir() + "/" + fileName);
                     BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(uploadedFile));
                     FileCopyUtils.copy(file.getInputStream(), stream);
