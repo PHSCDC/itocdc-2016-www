@@ -23,7 +23,7 @@ public class ActiveSessionRowMapper implements RowMapper {
         @Override
         public Object extractData(ResultSet resultSet) throws SQLException, DataAccessException {
             ActiveSession sess = new ActiveSession();
-            sess.setId(resultSet.getLong(1));
+            sess.setId(resultSet.getString(1));
             sess.setIp(resultSet.getString(2));
             return sess;
         }

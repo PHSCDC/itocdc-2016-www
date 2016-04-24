@@ -28,8 +28,17 @@ public class ActiveSessionRepository {
         }
         return list;
     }
+    
+    public ActiveSession getActiveSession(String id) {
+        String sql = "select * from active_sessions;";
+        List<ActiveSession> list = new ArrayList<>();
+        for (Object o : template.query(sql, sessRowMapper)) {
+            list.add((ActiveSession) o);
+        }
+        return list;
+    }
 
-    public void addActiveSession(long id, String ip) {
+    public void addActiveSession(String id, String ip) {
         String sql = "insert into active_sessions (id, ip) values (" + id + ", '" + ip + "');";
 		template.update(sql);
     }

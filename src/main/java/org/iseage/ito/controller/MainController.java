@@ -8,6 +8,7 @@ import org.iseage.ito.repository.CommentRepository;
 import org.iseage.ito.repository.FileRepository;
 import org.iseage.ito.repository.ImageRepository;
 import org.iseage.ito.repository.UserRepository;
+import org.iseage.ito.repository.ActiveSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -41,7 +42,7 @@ public class MainController {
     ImageRepository imageRepository;
     
     @Autowired
-    ActiveSession sessionRepository;
+    ActiveSessionRepository sessionRepository;
 
     @RequestMapping("")
     public String home() {
