@@ -4,25 +4,32 @@ import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.iseage.ito.Application;
 import org.iseage.ito.model.Comment;
 import org.iseage.ito.model.User;
+import org.iseage.ito.model.ActiveSession;
 import org.iseage.ito.repository.CommentRepository;
 import org.iseage.ito.repository.FileRepository;
 import org.iseage.ito.repository.ImageRepository;
 import org.iseage.ito.repository.UserRepository;
+import org.iseage.ito.repository.ActiveSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.Instant;
+
 
 @Controller
 public class MainController {
@@ -38,6 +45,9 @@ public class MainController {
 
     @Autowired
     ImageRepository imageRepository;
+    
+    @Autowired
+    ActiveSessionRepository sessionRepository;
 
     @RequestMapping("")
     public String home() {
@@ -45,17 +55,23 @@ public class MainController {
     }
 
     @RequestMapping("/index")
-    public String index() {
+    public String index(HttpServletRequest req) {
+		validateSession(req);
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String name = auth.getName(); //get logged in username
+        System.out.println(req.getSession().getId() + "\t" + name + "\t" + "bib--big money");
         return "index";
     }
 
     @RequestMapping("/download")
-    public String download() {
+    public String download(HttpServletRequest req) {
+		validateSession(req);
         return "download";
     }
 
     @RequestMapping("/downloadgame")
-    public void downloadGame(HttpServletResponse response) throws IOException {
+    public void downloadGame(HttpServletRequest req, HttpServletResponse response) throws IOException {
+		validateSession(req);
         InputStream inputStream = new FileInputStream(fileRepository.getGameDownloadPath());
         IOUtils.copy(inputStream, response.getOutputStream());
         response.setHeader("Content-Disposition", "attachment; filename=game.zip");
@@ -103,14 +119,16 @@ public class MainController {
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/changepass", method = RequestMethod.POST)
-    public void changePassword(@RequestBody User user) {
-        userRepository.changePassword(user.getUsername(), user.getPassword());
+    public void changePassword(HttpServletRequest req, @RequestBody User user) {
+		if(validateSession(req))
+			userRepository.changePassword(user.getUsername(), user.getPassword());
     }
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/changeemail", method = RequestMethod.POST)
-    public void changeEmail(@RequestBody User user) {
-        userRepository.changeEmail(user.getUsername(), user.getEmail());
+    public void changeEmail(HttpServletRequest req, @RequestBody User user) {
+		if(validateSession(req))
+			userRepository.changeEmail(user.getUsername(), user.getEmail());
     }
 
     @RequestMapping(value = "/comments", method = RequestMethod.GET)
@@ -122,40 +140,47 @@ public class MainController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(value = "/addcomment", method = RequestMethod.POST)
-    public void comments(@RequestBody Comment comment) {
-        commentRepository.addComment(comment.getComment(), comment.getAuthor());
+    public void comments(HttpServletRequest req, @RequestBody Comment comment) {
+		if(validateSession(req))
+			commentRepository.addComment(comment.getComment(), comment.getAuthor());
     }
 
     @RequestMapping("/admin")
-    public String admin(ModelMap modelMap) {
-        List<User> userList = userRepository.getAllUsers();
-        modelMap.put("users", userList);
+    public String admin(HttpServletRequest req, ModelMap modelMap) {
+		if(validateSession(req))
+		{
+			List<User> userList = userRepository.getAllUsers();
+			modelMap.put("users", userList);
 
-        List<String> unApprovedImages = imageRepository.getUnApprovedImages();
-        List<String> imageList = getImageNames(unApprovedImages);
-        modelMap.put("images", imageList);
+			List<String> unApprovedImages = imageRepository.getUnApprovedImages();
+			List<String> imageList = getImageNames(unApprovedImages);
+			modelMap.put("images", imageList);
+		}	
 
         return "admin";
     }
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping("/approve_image")
-    public String approveImage(@RequestParam(value = "image") String imageName) {
-        imageRepository.approveImage(imageName);
+    public String approveImage(HttpServletRequest req, @RequestParam(value = "image") String imageName) {
+		if(validateSession(req))
+			imageRepository.approveImage(imageName);
         return "admin";
     }
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping("/reject_image")
-    public String rejectImage(@RequestParam(value = "image") String imageName) {
-        imageRepository.rejectImage(imageName);
+    public String rejectImage(HttpServletRequest req, @RequestParam(value = "image") String imageName) {
+		if(validateSession(req))
+			imageRepository.rejectImage(imageName);
         return "admin";
     }
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/change_download_link", method = RequestMethod.GET)
-    public void setDownloadLink(@RequestParam(value = "to") String link) {
-        fileRepository.setGameDownloadPath(link);
+    public void setDownloadLink(HttpServletRequest req, @RequestParam(value = "to") String link) {
+		if(validateSession(req))
+			fileRepository.setGameDownloadPath(link);
     }
 
     private List<String> getImageNames(List<String> referenceList) {
@@ -171,4 +196,38 @@ public class MainController {
         }
         return imageList;
     }
+    
+    private boolean validateSession(HttpServletRequest req)
+    {
+		ActiveSession sess = sessionRepository.getActiveSessionById(req.getSession().getId());
+		if(sess != null)
+		{
+			if(sess.getIp() != ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr())
+			{
+				sessionRepository.rmActiveSession(sess.getId());
+				return false;
+			}
+			else if(sess.getExpiry() < (Instant.now().getEpochSecond() + 3600))
+			{
+				sessionRepository.rmActiveSession(sess.getId());
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			if(req.isRequestedSessionIdValid())
+			{
+				sessionRepository.addActiveSession(req.getSession().getId(), ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr());
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
 }
