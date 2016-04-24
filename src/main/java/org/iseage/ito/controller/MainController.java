@@ -17,6 +17,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -38,6 +39,9 @@ public class MainController {
 
     @Autowired
     ImageRepository imageRepository;
+    
+    @Autowired
+    ActiveSession sessionRepository;
 
     @RequestMapping("")
     public String home() {
@@ -45,7 +49,10 @@ public class MainController {
     }
 
     @RequestMapping("/index")
-    public String index() {
+    public String index(HttpServletRequest req) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String name = auth.getName(); //get logged in username
+        System.out.println(req.getSession().getId() + "\t" + name + "\t" + "bib--big money");
         return "index";
     }
 
