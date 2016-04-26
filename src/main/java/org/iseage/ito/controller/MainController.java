@@ -172,8 +172,8 @@ public class MainController {
 		}	
 		else
 		{
-			modelMap.put("users", new List<User>());
-			modelMap.put("images", new List<String>());
+			modelMap.put("users", new ArrayList<User>());
+			modelMap.put("images", new ArrayList<String>());
 		}
         return "admin";
     }
