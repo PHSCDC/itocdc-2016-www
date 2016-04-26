@@ -123,6 +123,10 @@ public class MainController {
 			String email = userRepository.getUserEmail(username);
 			modelMap.put("email", email);
 		}
+		else
+		{
+			modelMap.put("email", "");
+		}
         return "profile";
     }
 
@@ -166,7 +170,11 @@ public class MainController {
 			List<String> imageList = getImageNames(unApprovedImages);
 			modelMap.put("images", imageList);
 		}	
-
+		else
+		{
+			modelMap.put("users", new List<User>());
+			modelMap.put("images", new List<String>());
+		}
         return "admin";
     }
 
