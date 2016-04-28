@@ -15,7 +15,6 @@ public class FileRepository {
 
     public String getGameDownloadPath() {
         String sql = "select file from download";
-
         return template.queryForObject(sql, String.class);
     }
 

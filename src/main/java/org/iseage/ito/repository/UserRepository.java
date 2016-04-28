@@ -5,9 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.PreparedStatement;
+
+import org.jsoup.safety.Whitelist;
+import org.jsoup.Jsoup;
 
 @Repository
 public class UserRepository {
@@ -43,8 +48,15 @@ public class UserRepository {
     }
 
     public void changePassword(String username, String newPassword) {
-        String sql = "update users set password = '" + newPassword + "' where username = '" + username + "';";
-        template.update(sql);
+        try{
+			PreparedStatement stmt = template.getDataSource().getConnection().prepareStatement(
+				"update users set password = ? where username = ?;");
+			stmt.setString(1, newPassword);
+			stmt.setString(2, Jsoup.clean(username, Whitelist.simpleText()));
+			stmt.execute();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
     }
 
     public boolean addUser(String username, String password, String email) {
@@ -52,8 +64,17 @@ public class UserRepository {
             getUserByUsername(username);
             return false;
         } catch (RuntimeException e) {
-            String sql = "insert into users (username, password, email, access) values ('" + username + "', '" + password + "', '" + email + "', 0);";
-            template.update(sql);
+			try{
+				PreparedStatement stmt = template.getDataSource().getConnection().prepareStatement(
+					"insert into users (username, password, email, access) values (?, ?, ?, 0);");
+				stmt.setString(1, Jsoup.clean(username, Whitelist.simpleText()));
+				stmt.setString(2, password);
+				stmt.setString(3, Jsoup.clean(email, Whitelist.simpleText()));
+				stmt.execute();
+			} catch(Exception ee) {
+				ee.printStackTrace();
+				return false;
+			}
             return true;
         }
     }
@@ -65,5 +86,14 @@ public class UserRepository {
     public void changeEmail(String username, String email) {
         String sql = "update users set email = '" + email + "' where username = '" + username + "';";
         template.update(sql);
+        try{
+			PreparedStatement stmt = template.getDataSource().getConnection().prepareStatement(
+				"update users set email = ? where username = ?;");
+			stmt.setString(1, Jsoup.clean(email, Whitelist.simpleText()));
+			stmt.setString(2, Jsoup.clean(username, Whitelist.simpleText()));
+			stmt.execute();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
     }
 }

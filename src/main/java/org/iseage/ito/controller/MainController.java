@@ -221,16 +221,19 @@ public class MainController {
 			ActiveSession sess = sessionRepository.getActiveSessionById(req.getSession().getId());
 			if(sess != null)
 			{
-				if(sess.getIp() != ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr())
+				if(sess.getIp().compareTo(((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr()) != 0)
 				{
 					sessionRepository.rmActiveSession(sess.getId());
 					req.logout();
+					System.out.println("IP changed. Killing session.");
+					System.out.println(sess.getIp() + " != " + ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest().getRemoteAddr());
 					return false;
 				}
-				else if(sess.getExpiry() < (Instant.now().getEpochSecond() + 3600))
+				else if(sess.getExpiry() < Instant.now().getEpochSecond())
 				{
 					sessionRepository.rmActiveSession(sess.getId());
 					req.logout();
+					System.out.println("Outdated ID. Killing session.");
 					return false;
 				}
 				else
@@ -247,6 +250,7 @@ public class MainController {
 				}
 				else
 				{
+					System.out.println("Not even logged in.");
 					return false;
 				}
 			}
