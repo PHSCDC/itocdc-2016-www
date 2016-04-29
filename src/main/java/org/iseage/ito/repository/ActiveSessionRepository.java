@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import javax.sql.DataSource;
+
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +53,14 @@ public class ActiveSessionRepository {
     }
     
     public void rmActiveSession(String id) {
-        String sql = "DELETE FROM active_sessions WHERE id='" + id + "';";
-		template.update(sql);
+        try{
+			PreparedStatement stmt = template.getDataSource().getConnection().prepareStatement(
+				"DELETE FROM active_sessions WHERE id=?;");
+			stmt.setString(1, id);
+			stmt.execute();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 		flushRepo();
     }
     
