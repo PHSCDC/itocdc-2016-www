@@ -44,13 +44,13 @@
                     </div>
                     <div class="panel-body row center-text">
                         <div class="col-md-10 col-md-offset-1">
-                            <input class="form-control" id="current-password" placeholder="Current Password" type="password" name="current-password"/>
-                            <hr>
+                            <input class="form-control" id="currentPassword" placeholder="Current Password" type="password" name="current-password"/>
                             <input class="form-control" id="password" placeholder="New Password" type="password"
                                    name="password"/>
                             <button class="btn btn-primary" id="changePassword" type="submit" value="change-password">
                                 Change Password
                             </button>
+                            <hr>
                             <input class="form-control" id="email" placeholder="New Email" type="text"
                                    name="email"/>
                             <button class="btn btn-primary" id="changeEmail" type="submit" value="change-email">

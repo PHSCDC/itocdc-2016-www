@@ -132,9 +132,11 @@ public class MainController {
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/changepass", method = RequestMethod.POST)
-    public void changePassword(HttpServletRequest req, @RequestBody User user) {
-		if(validateSession(req))
-			userRepository.changePassword(user.getUsername(), user.getPassword());
+    public void changePassword(@RequestBody User user) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+	if (userRepository.getUserByUsername(auth.getName()).getPassword().compareTo(user.getPassword()) == 0) {
+        	userRepository.changePassword(auth.getName(), user.getPassword());
+	}
     }
 
     @ResponseStatus(HttpStatus.OK)
