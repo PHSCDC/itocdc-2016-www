@@ -4,6 +4,7 @@ import org.iseage.ito.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 
 import javax.sql.DataSource;
 import javax.annotation.Resource;
@@ -29,8 +30,18 @@ public class UserRepository {
     }
 
     public User getUserByUsername(String username) {
-        String sql = "SELECT userID, username, password, email, access FROM users WHERE username = '" + username + "';";
-        List<User> list = getUserList(sql);
+		if(!username.matches("^[a-zA-Z0-9]*$")) return null;
+		PreparedStatementSetter pss = new PreparedStatementSetter() {
+			public void setValues(PreparedStatement ps) {
+				try{
+					ps.setString(1, Jsoup.clean(username, Whitelist.simpleText()));
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
+        String sql = "SELECT userID, username, password, email, access FROM users WHERE username = ?;";
+        List<User> list = getUserList(sql, pss);
         if (list.isEmpty()) {
             System.out.println("User '" + username + "' doesn't exist!");
             throw new RuntimeException("User does not exist!");
@@ -46,8 +57,17 @@ public class UserRepository {
         }
         return list;
     }
+    
+    private List<User> getUserList(String sql, PreparedStatementSetter pss) {
+        List<User> list = new ArrayList<User>();
+        for (Object o : template.query(sql, pss, userRowMapper)) {
+            list.add((User) o);
+        }
+        return list;
+    }
 
     public void changePassword(String username, String newPassword) {
+		if(!username.matches("^[a-zA-Z0-9]*$")) return;
         try{
 			PreparedStatement stmt = template.getDataSource().getConnection().prepareStatement(
 				"update users set password = ? where username = ?;");
@@ -60,6 +80,9 @@ public class UserRepository {
     }
 
     public boolean addUser(String username, String password, String email) {
+		if(!username.matches("^[a-zA-Z0-9]*$") || !email.matches("\\w+@\\w+\\.\\w+")) {
+			return false;
+		}
         try {
             getUserByUsername(username);
             return false;
@@ -84,8 +107,7 @@ public class UserRepository {
     }
 
     public void changeEmail(String username, String email) {
-        String sql = "update users set email = '" + email + "' where username = '" + username + "';";
-        template.update(sql);
+		if(!username.matches("^[a-zA-Z0-9]*$") || !email.matches("\\w+@\\w+\\.\\w+")) return;
         try{
 			PreparedStatement stmt = template.getDataSource().getConnection().prepareStatement(
 				"update users set email = ? where username = ?;");

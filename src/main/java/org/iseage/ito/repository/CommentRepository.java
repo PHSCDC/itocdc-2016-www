@@ -42,7 +42,7 @@ public class CommentRepository {
 			stmt.setString(2, Jsoup.clean(author, Whitelist.simpleText()));
 			if(comment.length()  < 350)
 				stmt.execute();
-		} catch(Exception e)
+		} ca tch(Exception e)
 		{
 			e.printStackTrace();
 		}

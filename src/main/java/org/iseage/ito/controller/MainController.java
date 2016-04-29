@@ -61,7 +61,7 @@ public class MainController {
 		validateSession(req);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String name = auth.getName(); //get logged in username
-        System.out.println(req.getSession().getId() + "\t" + name + "\t" + "bib--big money");
+        System.out.println(req.getSession().getId() + "\t" + "name");
         return "index";
     }
 
