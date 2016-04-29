@@ -47,8 +47,16 @@ public class ActiveSessionRepository {
 
     public void addActiveSession(String id, String ip) {
 		Long time = Instant.now().getEpochSecond() + 3600;
-        String sql = "insert into active_sessions (id, ip, expiry) values ('" + id + "', '" + ip + "', " + time.toString() + ");";
-		template.update(sql);
+		try{
+			PreparedStatement stmt = template.getDataSource().getConnection().prepareStatement(
+				"insert into active_sessions (id, ip, expiry) values (?, ?, ?);");
+			stmt.setString(1, id);
+			stmt.setString(2, ip);
+			stmt.setLong(3, time);
+			stmt.execute();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 		flushRepo();
     }
     
