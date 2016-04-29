@@ -5,6 +5,7 @@ import org.iseage.ito.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 
 import java.sql.PreparedStatement;
 import javax.sql.DataSource;
@@ -34,9 +35,18 @@ public class ActiveSessionRepository {
     }
     
     public ActiveSession getActiveSessionById(String id) {
-        String sql = "select * from active_sessions WHERE id='" + id.toString() + "';";
+        PreparedStatementSetter pss = new PreparedStatementSetter() {
+			public void setValues(PreparedStatement ps) {
+				try{
+					ps.setString(1, id);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		String sql = "select * from active_sessions WHERE id=?;";
         List<ActiveSession> list = new ArrayList<>();
-        for (Object o : template.query(sql, sessRowMapper)) {
+        for (Object o : template.query(sql, pss, sessRowMapper)) {
             list.add((ActiveSession) o);
         }
         if(list.isEmpty())
