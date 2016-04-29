@@ -104,7 +104,10 @@ public class MainController {
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/changepass", method = RequestMethod.POST)
     public void changePassword(@RequestBody User user) {
-        userRepository.changePassword(user.getUsername(), user.getPassword());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+	if (userRepository.getUserByUsername(auth.getName()).getPassword().compareTo(user.getPassword()) == 0) {
+        	userRepository.changePassword(auth.getName(), user.getPassword());
+	}
     }
 
     @ResponseStatus(HttpStatus.OK)
