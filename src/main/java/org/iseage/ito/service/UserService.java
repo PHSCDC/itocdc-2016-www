@@ -28,7 +28,7 @@ public class UserService implements UserDetailsService {
 
             userDetails = new org.springframework.security.core.userdetails.User(
                     user.getUsername(),
-                    user.getPassword().toLowerCase(),
+                    user.getPassword(),
                     true,
                     true,
                     true,
