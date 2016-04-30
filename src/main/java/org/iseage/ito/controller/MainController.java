@@ -4,6 +4,7 @@ import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.iseage.ito.Application;
 import org.iseage.ito.model.Comment;
 import org.iseage.ito.model.User;
+import org.iseage.ito.model.ChangePassword;
 import org.iseage.ito.model.ActiveSession;
 import org.iseage.ito.repository.CommentRepository;
 import org.iseage.ito.repository.FileRepository;
@@ -132,18 +133,39 @@ public class MainController {
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/changepass", method = RequestMethod.POST)
-    public void changePassword(@RequestBody User user) {
+    public void changePassword(@RequestBody ChangePassword changePassword, HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-	if (userRepository.getUserByUsername(auth.getName()).getPassword().compareTo(user.getPassword()) == 0) {
-        	userRepository.changePassword(auth.getName(), user.getPassword());
-	}
+		if (userRepository.getUserByUsername(auth.getName()).getPassword().compareTo(changePassword.getCurrentPassword()) == 0) {
+        	userRepository.changePassword(auth.getName(), changePassword.getNewPassword());
+        	response.setStatus(201);
+		} else {
+			response.setStatus(500);
+		}
     }
+    
+    
+    @ResponseStatus(HttpStatus.OK)
+    @RequestMapping(value = "/changepassadmin", method = RequestMethod.POST)
+    public void changePassword(@RequestBody User user) {
+        userRepository.changePassword(user.getUsername(), user.getPassword());
+    }
+    
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/changeemail", method = RequestMethod.POST)
-    public void changeEmail(HttpServletRequest req, @RequestBody User user) {
+    public void changeEmail(HttpServletRequest req, @RequestPart(value="email") String email) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if(validateSession(req))
-			userRepository.changeEmail(user.getUsername(), user.getEmail());
+			userRepository.changeEmail(auth.getName(), email);
+		else {
+			
+		}
+    }
+    
+    @ResponseStatus(HttpStatus.OK)
+    @RequestMapping(value = "/changeemailadmin", method = RequestMethod.POST)
+    public void changeEmail(@RequestBody User user) {
+        userRepository.changeEmail(user.getUsername(), user.getEmail());
     }
 
     @RequestMapping(value = "/comments", method = RequestMethod.GET)

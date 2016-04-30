@@ -37,14 +37,13 @@
                     <h3>Edit Account Information</h3>
                 </div>
                 <hr>
-                <input type="hidden" id="username" value="${username}">
                 <div class="panel panel-primary">
                     <div class="panel-heading">
                         <h3 class="panel-title">Change Password</h3>
                     </div>
                     <div class="panel-body row center-text">
                         <div class="col-md-10 col-md-offset-1">
-                            <input class="form-control" id="currentPassword" placeholder="Current Password" type="password" name="current-password"/>
+                            <input class="form-control" id="currentPassword" placeholder="Current Password" type="password" name="currentPassword"/>
                             <input class="form-control" id="password" placeholder="New Password" type="password"
                                    name="password"/>
                             <button class="btn btn-primary" id="changePassword" type="submit" value="change-password">

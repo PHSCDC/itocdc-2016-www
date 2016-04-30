@@ -8,7 +8,7 @@
             };
         $.ajax({
             type: 'POST',
-            url: '/changepass',
+            url: '/changepassadmin',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -35,7 +35,7 @@
             };
         $.ajax({
             type: 'POST',
-            url: '/changeemail',
+            url: '/changeemailadmin',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'

@@ -1,11 +1,11 @@
 (function () {
     $('#changePassword').on('click', function () {
-        var username = $('#username').val(),
-            password = $('#password').val(),
-            user = {
-                username: username,
-                password: password
-            };
+		var currentPassword = $('#currentPassword').val(),
+            newPassword = $('#password').val();
+        var changePassword = {
+			currentPassword : currentPassword,
+            newPassword : newPassword
+        };
         $.ajax({
             type: 'POST',
             url: '/changepass',
@@ -13,8 +13,9 @@
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            data: JSON.stringify(user),
+            data: JSON.stringify(changePassword),
             success: function () {
+				$('#currentPassword').val('');
                 $('#password').val('');
                 alert('Password changed successfully!');
             },
@@ -25,13 +26,7 @@
     });
 
     $('#changeEmail').on('click', function () {
-        var username = $('#username').val(),
-            email = $('#email').val(),
-            user = {
-                username: username,
-                password: '',
-                email: email
-            };
+        var email = $('#email').val();
         $.ajax({
             type: 'POST',
             url: '/changeemail',
