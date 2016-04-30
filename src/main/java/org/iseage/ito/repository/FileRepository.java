@@ -23,6 +23,7 @@ public class FileRepository {
     }
 
     public void setGameDownloadPath(String path) {
+		if(!path.startsWith("/var/game/")) return;
 		try{
 			PreparedStatement stmt = template.getDataSource().getConnection().prepareStatement(
 				"update download set file=?;");
